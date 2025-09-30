@@ -1,0 +1,167 @@
+{% extends 'analyzer/base.html' %}
+
+{% block title %}首頁 - 農產品智慧分析平台{% endblock %}
+
+{% block content %}
+<!-- 英雄區塊 -->
+<div class="hero-section text-center">
+    <div class="container">
+        <h1 class="display-3 fw-bold mb-4">
+            <i class="fas fa-seedling"></i> 農產品智慧分析平台
+        </h1>
+        <p class="lead fs-4 mb-4">
+            運用 AI 科技，為您的農產品提供專業分析、品質評估與價格建議
+        </p>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <p class="fs-5 mb-4">
+                    <i class="fas fa-leaf"></i> 無論是新鮮蔬果、有機食材還是加工農產品
+                    <br>讓 AI 成為您的農業顧問
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <!-- 功能介紹卡片 -->
+            <div class="row mb-5">
+                <div class="col-md-4 mb-4">
+                    <div class="feature-card text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-camera-retro fa-2x text-white"></i>
+                        </div>
+                        <h5 class="card-title text-success fw-bold">智慧拍照識別</h5>
+                        <p class="card-text">一鍵拍照上傳，支援各種農產品圖片格式，快速安全處理</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="feature-card text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-microscope fa-2x text-white"></i>
+                        </div>
+                        <h5 class="card-title text-success fw-bold">專業品質分析</h5>
+                        <p class="card-text">運用 AI 視覺技術，深度分析農產品品種、品質與營養價值</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="feature-card text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line fa-2x text-white"></i>
+                        </div>
+                        <h5 class="card-title text-success fw-bold">市場價格評估</h5>
+                        <p class="card-text">基於台灣農產品市場行情，提供精準的定價建議與銷售策略</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 特色說明 -->
+            <div class="row mb-5">
+                <div class="col-md-6">
+                    <div class="card organic-pattern h-100">
+                        <div class="card-body">
+                            <h4 class="text-success mb-3">
+                                <i class="fas fa-leaf"></i> 適用農產品類型
+                            </h4>
+                            <div class="row">
+                                <div class="col-6">
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-carrot text-warning"></i> 根莖類蔬菜</li>
+                                        <li><i class="fas fa-apple-alt text-danger"></i> 新鮮水果</li>
+                                        <li><i class="fas fa-seedling text-success"></i> 葉菜類</li>
+                                    </ul>
+                                </div>
+                                <div class="col-6">
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-pepper-hot text-danger"></i> 香辛料</li>
+                                        <li><i class="fas fa-cookie-bite text-warning"></i> 加工食品</li>
+                                        <li><i class="fas fa-fish text-info"></i> 水產品</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100" style="background: linear-gradient(135deg, #5e8a3a 0%, #7ba05b 100%); color: white;">
+                        <div class="card-body">
+                            <h4 class="mb-3">
+                                <i class="fas fa-award"></i> 分析優勢
+                            </h4>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check-circle text-warning"></i> 準確識別農產品品種與特徵</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-warning"></i> 評估新鮮度與品質等級</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-warning"></i> 提供營養成分與功效說明</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-warning"></i> 建議最佳保存與料理方式</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-warning"></i> 參考市場行情給出合理價格</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 開始使用按鈕 -->
+            <div class="text-center mb-5">
+                <a href="{% url 'analyzer:upload' %}" class="btn btn-primary btn-lg px-5 py-3">
+                    <i class="fas fa-camera-retro"></i> 立即開始分析農產品
+                </a>
+                <br>
+                <small class="text-muted mt-2 d-block">
+                    <i class="fas fa-shield-alt"></i> 安全、快速、專業 - 您的農業智慧助手
+                </small>
+            </div>
+
+        <!-- 最近分析的商品 -->
+        {% if recent_images %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock"></i> 最近分析的商品
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for image in recent_images %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card h-100">
+                            {% if image.image %}
+                            <img src="{{ image.image.url }}" class="card-img-top" 
+                                 style="height: 200px; object-fit: cover;" 
+                                 alt="{{ image.product_name }}">
+                            {% endif %}
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    {{ image.product_name|default:"未命名商品" }}
+                                </h6>
+                                <p class="card-text small text-muted">
+                                    {{ image.uploaded_at|date:"Y-m-d H:i" }}
+                                </p>
+                                {% if image.recommended_price %}
+                                <p class="card-text">
+                                    <strong class="text-success">
+                                        NT$ {{ image.recommended_price }}
+                                    </strong>
+                                </p>
+                                {% endif %}
+                                <a href="{% url 'analyzer:result' image.pk %}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    查看詳情
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{% url 'analyzer:history' %}" class="btn btn-outline-secondary">
+                        查看所有記錄
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

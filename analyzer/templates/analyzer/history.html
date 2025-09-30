@@ -1,0 +1,149 @@
+{% extends 'analyzer/base.html' %}
+
+{% block title %}分析記錄 - 農產品智慧分析平台{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center" 
+                 style="background: linear-gradient(135deg, #5e8a3a 0%, #7ba05b 100%); color: white;">
+                <h4 class="mb-0">
+                    <i class="fas fa-clipboard-list"></i> 農產品分析記錄
+                </h4>
+                <span class="badge" style="background-color: #f39c12;">共 {{ images.count }} 筆分析</span>
+            </div>
+            <div class="card-body">
+                {% if images %}
+                <div class="row">
+                    {% for image in images %}
+                    <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+                        <div class="card h-100">
+                            {% if image.image %}
+                            <img src="{{ image.image.url }}" 
+                                 class="card-img-top" 
+                                 style="height: 200px; object-fit: cover;" 
+                                 alt="{{ image.product_name }}">
+                            {% endif %}
+                            
+                            <div class="card-body d-flex flex-column">
+                                <h6 class="card-title">
+                                    {{ image.product_name|default:"未命名商品"|truncatechars:20 }}
+                                </h6>
+                                
+                                <p class="card-text small text-muted flex-grow-1">
+                                    {{ image.description|default:"無描述"|truncatechars:60 }}
+                                </p>
+                                
+                                <div class="mt-auto">
+                                    {% if image.recommended_price %}
+                                    <p class="card-text">
+                                        <strong class="text-success">
+                                            NT$ {{ image.recommended_price }}
+                                        </strong>
+                                    </p>
+                                    {% endif %}
+                                    
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            {{ image.uploaded_at|date:"m/d H:i" }}
+                                        </small>
+                                        <div>
+                                            {% if image.analyzed %}
+                                                <span class="badge bg-success">已分析</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">待分析</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-2">
+                                        <a href="{% url 'analyzer:result' image.pk %}" 
+                                           class="btn btn-sm btn-primary w-100">
+                                            <i class="fas fa-eye"></i> 查看詳情
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- 分頁功能（如果需要的話） -->
+                {% comment %}
+                {% if is_paginated %}
+                <nav aria-label="分頁導航">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">上一頁</a>
+                        </li>
+                        {% endif %}
+                        
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                        </li>
+                        
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">下一頁</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                {% endcomment %}
+
+                {% else %}
+                <!-- 空狀態 -->
+                <div class="text-center py-5 organic-pattern">
+                    <i class="fas fa-seedling fa-4x text-success mb-3"></i>
+                    <h5 class="text-success">尚無農產品分析記錄</h5>
+                    <p class="text-muted">
+                        <i class="fas fa-camera-retro"></i> 開始上傳您的第一張農產品圖片，
+                        <br>讓 AI 成為您的農業顧問！
+                    </p>
+                    <a href="{% url 'analyzer:upload' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-camera-retro"></i> 立即開始分析
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 統計資訊 -->
+        {% if images %}
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-images fa-2x text-primary mb-2"></i>
+                        <h5>{{ images.count }}</h5>
+                        <small class="text-muted">總分析數量</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                        <h5>{{ images|length }}</h5>
+                        <small class="text-muted">成功分析</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-calendar fa-2x text-info mb-2"></i>
+                        <h5>{{ images.first.uploaded_at|date:"Y/m/d" }}</h5>
+                        <small class="text-muted">最新分析</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,198 @@
+{% extends 'analyzer/base.html' %}
+
+{% block title %}分析結果 - {{ product_image.product_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <!-- 標題 -->
+        <div class="text-center mb-4">
+            <h2 class="text-success">
+                <i class="fas fa-microscope"></i> 農產品分析結果
+            </h2>
+            <p class="text-muted">
+                <i class="fas fa-leaf"></i> AI 智慧分析為您提供專業的農產品資訊
+            </p>
+        </div>
+
+        <div class="row">
+            <!-- 圖片區域 -->
+            <div class="col-md-5 mb-4">
+                <div class="card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #5e8a3a 0%, #7ba05b 100%); color: white;">
+                        <h5 class="mb-0">
+                            <i class="fas fa-camera"></i> 農產品圖片
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        {% if product_image.image %}
+                        <img src="{{ product_image.image.url }}" 
+                             class="img-fluid rounded" 
+                             alt="{{ product_image.product_name }}"
+                             style="max-height: 400px;">
+                        {% endif %}
+                        <p class="text-muted mt-2 small">
+                            上傳時間：{{ product_image.uploaded_at|date:"Y-m-d H:i:s" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 分析結果區域 -->
+            <div class="col-md-7 mb-4">
+                <div class="card result-card text-white">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-seedling"></i> AI 智慧分析結果
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <h6><i class="fas fa-leaf"></i> 農產品名稱</h6>
+                            <h4 class="fw-bold">{{ product_image.product_name|default:"未識別的農產品" }}</h4>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6><i class="fas fa-coins"></i> 建議市場價格</h6>
+                            <div class="price-highlight">
+                                {% if product_image.recommended_price %}
+                                    NT$ {{ product_image.recommended_price|floatformat:0 }} / 斤
+                                {% else %}
+                                    價格待評估
+                                {% endif %}
+                            </div>
+                            <small class="text-light">
+                                <i class="fas fa-info-circle"></i> 價格僅供參考，實際售價請依市場行情調整
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <h6><i class="fas fa-clipboard-list"></i> 農產品特色與介紹</h6>
+                            <p>{{ product_image.description|default:"暫無介紹" }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 操作按鈕 -->
+                <div class="mt-3">
+                    <a href="{% url 'analyzer:upload' %}" class="btn btn-primary me-2 mb-2">
+                        <i class="fas fa-camera-retro"></i> 繼續分析農產品
+                    </a>
+                    <a href="{% url 'analyzer:history' %}" class="btn btn-outline-success me-2 mb-2">
+                        <i class="fas fa-clipboard-list"></i> 分析記錄
+                    </a>
+                    <button class="btn btn-outline-info mb-2" onclick="copyToClipboard()">
+                        <i class="fas fa-copy"></i> 複製分析資料
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 詳細分析結果 -->
+        {% if product_image.analysis_json %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar"></i> 詳細分析資訊
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% if product_image.analysis_json.category %}
+                    <div class="col-md-6 mb-3">
+                        <h6><i class="fas fa-list"></i> 商品類別</h6>
+                        <span class="badge bg-primary">{{ product_image.analysis_json.category }}</span>
+                    </div>
+                    {% endif %}
+
+                    {% if product_image.analysis_json.target_audience %}
+                    <div class="col-md-6 mb-3">
+                        <h6><i class="fas fa-users"></i> 目標客群</h6>
+                        <p>{{ product_image.analysis_json.target_audience }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if product_image.analysis_json.features %}
+                    <div class="col-md-6 mb-3">
+                        <h6><i class="fas fa-star"></i> 商品特色</h6>
+                        <ul class="list-unstyled">
+                            {% for feature in product_image.analysis_json.features %}
+                            <li><i class="fas fa-check text-success"></i> {{ feature }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    {% if product_image.analysis_json.usage_scenarios %}
+                    <div class="col-md-6 mb-3">
+                        <h6><i class="fas fa-lightbulb"></i> 使用場景</h6>
+                        <ul class="list-unstyled">
+                            {% for scenario in product_image.analysis_json.usage_scenarios %}
+                            <li><i class="fas fa-arrow-right text-info"></i> {{ scenario }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- JSON 原始資料 -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-code"></i> JSON 原始資料
+                    <button class="btn btn-sm btn-outline-secondary float-end" 
+                            type="button" data-bs-toggle="collapse" 
+                            data-bs-target="#jsonCollapse">
+                        顯示/隱藏
+                    </button>
+                </h6>
+            </div>
+            <div class="collapse" id="jsonCollapse">
+                <div class="card-body">
+                    <pre id="jsonData" class="bg-light p-3 rounded"><code>{{ product_image.analysis_json|safe }}</code></pre>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyToClipboard() {
+    const jsonData = document.getElementById('jsonData').textContent;
+    
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(jsonData).then(function() {
+            alert('JSON 資料已複製到剪貼簿！');
+        });
+    } else {
+        // 舊版瀏覽器的備用方案
+        const textArea = document.createElement('textarea');
+        textArea.value = jsonData;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('JSON 資料已複製到剪貼簿！');
+    }
+}
+
+// 格式化 JSON 顯示
+document.addEventListener('DOMContentLoaded', function() {
+    const jsonElement = document.getElementById('jsonData');
+    if (jsonElement) {
+        try {
+            const jsonText = jsonElement.textContent;
+            const jsonObject = JSON.parse(jsonText);
+            jsonElement.textContent = JSON.stringify(jsonObject, null, 2);
+        } catch (e) {
+            console.log('JSON 格式化失敗');
+        }
+    }
+});
+</script>
+{% endblock %}
