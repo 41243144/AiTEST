@@ -30,7 +30,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-+tyh(mxkyjc5u8et4mzxuae2-e
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ["openai-test-t4o1.onrender.com"]
+ALLOWED_HOSTS = ["openai-test-t4o1.onrender.com", "ai.wenwen.website"]
 
 
 # Application definition
