@@ -143,3 +143,63 @@ class OpenAIService:
                 "usage_scenarios": [],
                 "error": str(e)
             }
+    
+    def generate_product_story(self, product_info, story_prompt, story_style):
+        """根據產品資訊和使用者指令生成產品故事"""
+        try:
+            # 根據風格調整提示詞
+            style_prompts = {
+                '温馨家庭': '請以溫馨、親切的家庭視角，強調產品與家人情感連結的故事',
+                '田園詩意': '請以優美的田園詩意風格，描述產品與大自然和諧共生的故事', 
+                '健康養生': '請以專業又親和的語調，重點介紹產品的營養價值和健康益處',
+                '懷舊復古': '請以懷舊的語調，訴說產品承載的傳統文化和歷史記憶',
+                '現代簡約': '請以簡潔明快的現代風格，突出產品的品質和特色',
+                '兒童友好': '請以活潑有趣的語言，適合向兒童介紹這個產品',
+                '專業科普': '請以專業的科普語調，詳細介紹產品的特性和知識',
+                '浪漫情懷': '請以浪漫詩意的語言，描述產品帶來的美好體驗'
+            }
+            
+            style_instruction = style_prompts.get(story_style, '請以友善親切的語調')
+            
+            prompt = f"""
+            根據以下農產品資訊，{style_instruction}，生成一個引人入勝的產品故事。
+
+            產品資訊：
+            - 產品名稱：{product_info.get('product_name', '未知產品')}
+            - 產品描述：{product_info.get('description', '無描述')}
+            - 產品類別：{product_info.get('category', '未知類別')}
+            - 產品特色：{', '.join(product_info.get('features', []))}
+            - 目標客群：{product_info.get('target_audience', '未知')}
+
+            使用者故事需求：{story_prompt}
+
+            故事風格：{story_style}
+
+            請生成一個約200-400字的產品故事，要求：
+            1. 內容必須真實可信，不可誇大不實
+            2. 語言生動有趣，富有感情色彩
+            3. 突出產品的特色和價值
+            4. 符合選定的風格調性
+            5. 適合用於產品行銷和介紹
+            6. 使用繁體中文
+            
+            請直接回傳故事內容，不需要額外的格式標記。
+            """
+            
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {
+                        "role": "user", 
+                        "content": prompt
+                    }
+                ],
+                max_tokens=600,
+                temperature=0.7
+            )
+            
+            story_content = response.choices[0].message.content.strip()
+            return story_content
+            
+        except Exception as e:
+            return f"故事生成失敗：{str(e)}"

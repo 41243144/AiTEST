@@ -73,6 +73,66 @@
                     </div>
                 </div>
 
+                <!-- 故事生成區域 -->
+                <div class="card mt-3" style="background: linear-gradient(135deg, #81c784 0%, #4caf50 100%);">
+                    <div class="card-header text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-book-open"></i> 產品故事生成
+                        </h6>
+                    </div>
+                    <div class="card-body text-white">
+                        {% if product_image.story_generated %}
+                            <div class="mb-3">
+                                <h6><i class="fas fa-feather-alt"></i> 故事風格：{{ product_image.story_style }}</h6>
+                                <small class="opacity-75">使用者需求：{{ product_image.story_prompt }}</small>
+                            </div>
+                            <div class="story-content bg-white text-dark p-3 rounded">
+                                {{ product_image.story_content|linebreaks }}
+                            </div>
+                            <div class="mt-3">
+                                <button class="btn btn-light btn-sm" onclick="copyStoryToClipboard()">
+                                    <i class="fas fa-copy"></i> 複製故事
+                                </button>
+                                <button class="btn btn-outline-light btn-sm" data-bs-toggle="collapse" data-bs-target="#storyForm">
+                                    <i class="fas fa-edit"></i> 重新生成
+                                </button>
+                            </div>
+                        {% else %}
+                            <p class="mb-3">
+                                <i class="fas fa-magic"></i> 
+                                讓 AI 為您的農產品創造獨特的故事，增加產品的魅力和價值！
+                            </p>
+                            <button class="btn btn-light" data-bs-toggle="collapse" data-bs-target="#storyForm">
+                                <i class="fas fa-pen-fancy"></i> 開始創作故事
+                            </button>
+                        {% endif %}
+                        
+                        <!-- 故事生成表單 -->
+                        <div class="collapse mt-3 {% if not product_image.story_generated %}show{% endif %}" id="storyForm">
+                            <div class="card bg-white text-dark">
+                                <div class="card-body">
+                                    <form method="post" action="{% url 'analyzer:generate_story' product_image.pk %}">
+                                        {% csrf_token %}
+                                        <div class="mb-3">
+                                            {{ story_form.story_prompt.label_tag }}
+                                            {{ story_form.story_prompt }}
+                                            <div class="form-text">{{ story_form.story_prompt.help_text }}</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            {{ story_form.story_style.label_tag }}
+                                            {{ story_form.story_style }}
+                                            <div class="form-text">{{ story_form.story_style.help_text }}</div>
+                                        </div>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-magic"></i> 生成故事
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 操作按鈕 -->
                 <div class="mt-3">
                     <a href="{% url 'analyzer:upload' %}" class="btn btn-primary me-2 mb-2">
@@ -178,6 +238,28 @@ function copyToClipboard() {
         document.execCommand('copy');
         document.body.removeChild(textArea);
         alert('JSON 資料已複製到剪貼簿！');
+    }
+}
+
+function copyStoryToClipboard() {
+    const storyElement = document.querySelector('.story-content');
+    if (!storyElement) return;
+    
+    const storyText = storyElement.textContent;
+    
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(storyText).then(function() {
+            alert('產品故事已複製到剪貼簿！');
+        });
+    } else {
+        // 舊版瀏覽器的備用方案
+        const textArea = document.createElement('textarea');
+        textArea.value = storyText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('產品故事已複製到剪貼簿！');
     }
 }
 

@@ -26,6 +26,12 @@ class ProductImage(models.Model):
     analysis_json = models.JSONField(null=True, blank=True, verbose_name='完整分析結果')
     analyzed = models.BooleanField(default=False, verbose_name='已分析')
     
+    # 故事生成相關欄位
+    story_content = models.TextField(blank=True, verbose_name='產品故事')
+    story_style = models.CharField(max_length=50, blank=True, verbose_name='故事風格')
+    story_prompt = models.TextField(blank=True, verbose_name='使用者故事指令')
+    story_generated = models.BooleanField(default=False, verbose_name='已生成故事')
+    
     class Meta:
         verbose_name = '商品圖片'
         verbose_name_plural = '商品圖片'

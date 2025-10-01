@@ -7,7 +7,7 @@ import json
 import os
 
 from .models import ProductImage
-from .forms import ProductImageForm
+from .forms import ProductImageForm, StoryGenerationForm
 from .services import OpenAIService
 
 def index(request):
@@ -67,8 +67,11 @@ def upload_image(request):
 def result(request, pk):
     """結果顯示視圖"""
     product_image = get_object_or_404(ProductImage, pk=pk)
+    story_form = StoryGenerationForm()
+    
     return render(request, 'analyzer/result.html', {
-        'product_image': product_image
+        'product_image': product_image,
+        'story_form': story_form
     })
 
 def history(request):
@@ -140,4 +143,100 @@ def api_analyze(request):
         return JsonResponse({
             'success': False,
             'error': f'分析失敗: {str(e)}'
+            }, status=500)
+
+def generate_story(request, pk):
+    """生成產品故事視圖"""
+    product_image = get_object_or_404(ProductImage, pk=pk)
+    
+    if request.method == 'POST':
+        form = StoryGenerationForm(request.POST)
+        if form.is_valid():
+            story_prompt = form.cleaned_data['story_prompt']
+            story_style = form.cleaned_data['story_style']
+            
+            try:
+                # 確保產品已經分析過
+                if not product_image.analyzed or not product_image.analysis_json:
+                    messages.error(request, '請先完成產品分析後再生成故事。')
+                    return redirect('analyzer:result', pk=pk)
+                
+                # 生成故事
+                openai_service = OpenAIService()
+                story_content = openai_service.generate_product_story(
+                    product_image.analysis_json,
+                    story_prompt,
+                    story_style
+                )
+                
+                # 更新產品資訊
+                product_image.story_content = story_content
+                product_image.story_style = story_style
+                product_image.story_prompt = story_prompt
+                product_image.story_generated = True
+                product_image.save()
+                
+                messages.success(request, '產品故事生成成功！')
+                return redirect('analyzer:result', pk=pk)
+                
+            except Exception as e:
+                messages.error(request, f'故事生成失敗: {str(e)}')
+                return redirect('analyzer:result', pk=pk)
+        else:
+            messages.error(request, '表單填寫有誤，請檢查後重新提交。')
+    
+    return redirect('analyzer:result', pk=pk)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def api_generate_story(request):
+    """API 端點：生成產品故事"""
+    try:
+        data = json.loads(request.body)
+        product_id = data.get('product_id')
+        story_prompt = data.get('story_prompt')
+        story_style = data.get('story_style')
+        
+        if not all([product_id, story_prompt, story_style]):
+            return JsonResponse({
+                'success': False,
+                'error': '缺少必要參數：product_id, story_prompt, story_style'
+            }, status=400)
+        
+        product_image = get_object_or_404(ProductImage, pk=product_id)
+        
+        if not product_image.analyzed or not product_image.analysis_json:
+            return JsonResponse({
+                'success': False,
+                'error': '產品尚未分析完成'
+            }, status=400)
+        
+        # 生成故事
+        openai_service = OpenAIService()
+        story_content = openai_service.generate_product_story(
+            product_image.analysis_json,
+            story_prompt,
+            story_style
+        )
+        
+        # 更新產品資訊
+        product_image.story_content = story_content
+        product_image.story_style = story_style
+        product_image.story_prompt = story_prompt
+        product_image.story_generated = True
+        product_image.save()
+        
+        return JsonResponse({
+            'success': True,
+            'data': {
+                'story_content': story_content,
+                'story_style': story_style,
+                'story_prompt': story_prompt
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'故事生成失敗: {str(e)}'
         }, status=500)
